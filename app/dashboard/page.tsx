@@ -7,21 +7,22 @@ import EventSignupButton from './EventSignupButton';
 import { getBadge } from '@/lib/badges';
 
 // Badge tier boundaries for progress bar
-const TIERS = [
+type Tier = { min: number; max: number; next: string | null; nextMin: number | null };
+const TIERS: Tier[] = [
   { min: 0,    max: 899,  next: 'Rising Player', nextMin: 900  },
   { min: 900,  max: 999,  next: 'Club Player',   nextMin: 1000 },
   { min: 1000, max: 1099, next: 'Advanced',       nextMin: 1100 },
   { min: 1100, max: 1199, next: 'Master',          nextMin: 1200 },
-  { min: 1200, max: 3000, next: null,              nextMin: null as null },
+  { min: 1200, max: 3000, next: null,              nextMin: null },
 ];
 
 function getRatingProgress(rating: number | null | undefined) {
   const r = rating ?? 0;
-  const tier = TIERS.find((t) => r >= t.min && r <= t.max) ?? TIERS[0];
-  if (!tier.next) return { pct: 100, pointsLeft: 0, nextBadge: null };
+  const tier: Tier = TIERS.find((t) => r >= t.min && r <= t.max) ?? TIERS[0];
+  if (!tier.next || tier.nextMin === null) return { pct: 100, pointsLeft: 0, nextBadge: null };
   const range = tier.max - tier.min + 1;
   const pct = Math.min(100, Math.round(((r - tier.min) / range) * 100));
-  const pointsLeft = (tier.nextMin ?? tier.max) - r;
+  const pointsLeft = tier.nextMin - r;
   return { pct, pointsLeft, nextBadge: tier.next };
 }
 
