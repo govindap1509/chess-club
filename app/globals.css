@@ -189,3 +189,9 @@
     padding: 0 24px;
   }
 }
+/* LOGIN SPLIT LAYOUT — photo panel shows on md+ */
+@media (min-width: 768px) {
+  .login-photo-panel {
+    display: flex !important;
+  }
+}

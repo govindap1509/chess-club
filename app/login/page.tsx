@@ -78,19 +78,56 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
+    <div style={{ minHeight: '100vh', display: 'flex' }}>
 
-        {/* Logo lockup */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 40, lineHeight: 1, marginBottom: 12 }}>♟</div>
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#5F6368', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            School Chess Club
+      {/* LEFT — chess photo panel */}
+      <div style={{
+        flex: '1 1 0',
+        minWidth: 0,
+        display: 'none',
+        position: 'relative',
+        backgroundImage: 'url(https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1400&auto=format&fit=crop&q=80)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+        className="login-photo-panel"
+      >
+        {/* dark gradient overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(13,71,161,0.85) 0%, rgba(0,0,0,0.65) 100%)' }} />
+        {/* content over photo */}
+        <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '48px 52px' }}>
+          <div style={{ fontSize: 52, marginBottom: 16 }}>♟</div>
+          <h2 style={{ fontSize: 32, fontWeight: 700, color: '#FFFFFF', lineHeight: 1.2, marginBottom: 12 }}>
+            School<br />Chess Club
+          </h2>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, maxWidth: 320 }}>
+            Track your rating, register for events, challenge teammates and climb the leaderboard.
           </p>
+          <div style={{ display: 'flex', gap: 24, marginTop: 32 }}>
+            {[['♟', 'Events'], ['🏆', 'Rankings'], ['📈', 'Progress']].map(([icon, label]) => (
+              <div key={label} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 22 }}>{icon}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {/* Card */}
-        <div className="card" style={{ padding: 36 }}>
+      {/* RIGHT — form panel */}
+      <div style={{ flex: '0 0 auto', width: '100%', maxWidth: 480, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px', background: '#F8F9FA' }}>
+        <div style={{ width: '100%', maxWidth: 380 }}>
+
+          {/* Logo lockup */}
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ fontSize: 40, lineHeight: 1, marginBottom: 12 }}>♟</div>
+            <p style={{ fontSize: 13, fontWeight: 500, color: '#5F6368', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              School Chess Club
+            </p>
+          </div>
+
+          {/* Card */}
+          <div className="card" style={{ padding: 36 }}>
           <h1 style={{ fontSize: 22, fontWeight: 500, color: '#202124', marginBottom: 4 }}>
             {titles[mode]}
           </h1>
@@ -157,6 +194,7 @@ export default function LoginPage() {
                 ← Back to sign in
               </button>
             )}
+          </div>
           </div>
         </div>
       </div>
