@@ -4,6 +4,7 @@ import Link from 'next/link';
 import BadgeChip from '@/components/BadgeChip';
 import Avatar from '@/components/Avatar';
 import EventSignupButton from './EventSignupButton';
+import RatingChart from './RatingChart';
 import { getBadge } from '@/lib/badges';
 
 // Badge tier boundaries for progress bar
@@ -42,6 +43,7 @@ export default async function DashboardPage() {
     { data: myMessages },
     { data: leaderTop },
     { data: allMyMatches },
+    { data: ratingHistory },
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('events').select('*').gte('event_date', new Date().toISOString()).order('event_date', { ascending: true }),
@@ -53,6 +55,12 @@ export default async function DashboardPage() {
       .select('id, event_id, player1_id, player2_id, winner_id, created_at, events(title), p1:profiles!match_results_player1_id_fkey(name), p2:profiles!match_results_player2_id_fkey(name)')
       .or(`player1_id.eq.${user!.id},player2_id.eq.${user!.id}`)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('rating_history')
+      .select('rating, created_at, note')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: true })
+      .limit(50),
   ]);
 
   const mySignupSet = new Set((mySignupRows ?? []).map((s: any) => s.event_id));
@@ -136,6 +144,12 @@ export default async function DashboardPage() {
           <span style={{ fontSize: 11, color: '#80868B' }}>{rating ?? 0}</span>
           {nextBadge && <span style={{ fontSize: 11, color: '#80868B' }}>{TIERS.find(t => t.next === nextBadge)?.nextMin}</span>}
         </div>
+      </div>
+
+      {/* RATING HISTORY CHART */}
+      <div className="card" style={{ padding: '20px 24px' }}>
+        <h2 style={{ fontSize: 17, fontWeight: 600, color: '#202124', marginBottom: 16 }}>📊 Rating History</h2>
+        <RatingChart data={(ratingHistory ?? []) as { rating: number; created_at: string; note?: string | null }[]} />
       </div>
 
       {/* UPCOMING EVENTS */}

@@ -73,14 +73,48 @@ export default function AdminResultsPage() {
     }
     setSaving(true);
     try {
+      // 1. Save match result
       const { error } = await supabase.from('match_results').insert({
-        event_id: form.event_id,
+        event_id: form.event_id || null,
         player1_id: form.player1_id,
         player2_id: form.player2_id,
         winner_id: form.winner_id || null,
       });
       if (error) throw error;
-      toast.success('Result saved!');
+
+      // 2. Fetch current ratings for both players
+      const [{ data: p1d }, { data: p2d }] = await Promise.all([
+        supabase.from('profiles').select('name, chess_rating').eq('id', form.player1_id).single(),
+        supabase.from('profiles').select('name, chess_rating').eq('id', form.player2_id).single(),
+      ]);
+      const p1Rating = p1d?.chess_rating ?? 1000;
+      const p2Rating = p2d?.chess_rating ?? 1000;
+      const p1Name = p1d?.name ?? 'Player 1';
+      const p2Name = p2d?.name ?? 'Player 2';
+
+      // 3. Calculate new ratings (win +10, loss -5, draw unchanged, floor 800)
+      let newP1 = p1Rating, newP2 = p2Rating;
+      if (form.winner_id === form.player1_id) {
+        newP1 = p1Rating + 10;
+        newP2 = Math.max(800, p2Rating - 5);
+      } else if (form.winner_id === form.player2_id) {
+        newP1 = Math.max(800, p1Rating - 5);
+        newP2 = p2Rating + 10;
+      }
+
+      // 4. Update profiles + insert rating history
+      await Promise.all([
+        supabase.from('profiles').update({ chess_rating: newP1 }).eq('id', form.player1_id),
+        supabase.from('profiles').update({ chess_rating: newP2 }).eq('id', form.player2_id),
+        supabase.from('rating_history').insert([
+          { user_id: form.player1_id, rating: newP1, note: `vs ${p2Name}` },
+          { user_id: form.player2_id, rating: newP2, note: `vs ${p1Name}` },
+        ]),
+      ]);
+
+      const resultLabel = !form.winner_id ? 'Draw'
+        : form.winner_id === form.player1_id ? `${p1Name} won` : `${p2Name} won`;
+      toast.success(`Saved! ${resultLabel} · Ratings updated`);
       setForm({ event_id: '', player1_id: '', player2_id: '', winner_id: '' });
       await load();
     } catch (err: unknown) {
