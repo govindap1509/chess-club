@@ -8,7 +8,7 @@ import Avatar from '@/components/Avatar';
 import BadgeChip from '@/components/BadgeChip';
 import { Profile } from '@/lib/supabase/types';
 
-const CLASS_OPTIONS = ['Class A', 'Class B', 'Class C'];
+const CLASS_OPTIONS = ['Raven', 'Swans', 'Parents'];
 
 export default function ProfilePage() {
   const supabase = createClient();
@@ -72,7 +72,7 @@ export default function ProfilePage() {
       });
       if (error) throw error;
       toast.success('Profile saved!');
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
