@@ -72,7 +72,7 @@ export default function ProfilePage() {
       });
       if (error) throw error;
       toast.success('Profile saved!');
-      router.refresh();
+      router.push('/dashboard');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Save failed');
     } finally {

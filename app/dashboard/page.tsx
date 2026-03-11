@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import BadgeChip from '@/components/BadgeChip';
 import Avatar from '@/components/Avatar';
+import EventSignupButton from './EventSignupButton';
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -12,34 +13,44 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login');
 
-  const [{ data: profile }, { data: upcomingEvents }, { data: mySignups }, { data: myMessages }] =
-    await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase
-        .from('events')
-        .select('*')
-        .gte('event_date', new Date().toISOString())
-        .order('event_date', { ascending: true })
-        .limit(3),
-      supabase
-        .from('event_signups')
-        .select('event_id, events(id, title, event_date)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5),
-      supabase
-        .from('messages')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5),
-    ]);
+  const [
+    { data: profile },
+    { data: allEvents },
+    { data: mySignupRows },
+    { data: myMessages },
+    { data: leaderTop },
+    { data: matchResults },
+  ] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase
+      .from('events')
+      .select('*')
+      .gte('event_date', new Date().toISOString())
+      .order('event_date', { ascending: true }),
+    supabase
+      .from('event_signups')
+      .select('event_id')
+      .eq('user_id', user.id),
+    supabase
+      .from('messages')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('profiles')
+      .select('id, name, chess_rating, profile_photo')
+      .order('chess_rating', { ascending: false })
+      .limit(5),
+    supabase
+      .from('match_results')
+      .select('id, event_id, player1_id, player2_id, winner_id, created_at, events(title), p1:profiles!match_results_player1_id_fkey(name), p2:profiles!match_results_player2_id_fkey(name)')
+      .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
+      .order('created_at', { ascending: false })
+      .limit(10),
+  ]);
 
-  const { data: leaderTop } = await supabase
-    .from('profiles')
-    .select('id, name, chess_rating, profile_photo')
-    .order('chess_rating', { ascending: false })
-    .limit(5);
+  const mySignupSet = new Set((mySignupRows ?? []).map((s: any) => s.event_id));
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -63,54 +74,60 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 20 }}>
+      {/* Upcoming Events with Register/Registered buttons */}
+      <section className="card">
+        <h2 style={{ fontSize: 16, fontWeight: 500, color: '#202124', marginBottom: 16 }}>Upcoming Events</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {allEvents && allEvents.length > 0 ? (
+            allEvents.map((ev) => (
+              <div key={ev.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid #E8EAED', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: '#202124', marginBottom: 2 }}>{ev.title}</p>
+                  <p style={{ fontSize: 12, color: '#5F6368' }}>
+                    {new Date(ev.event_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                  {ev.description && <p style={{ fontSize: 13, color: '#3C4043', marginTop: 4 }}>{ev.description}</p>}
+                </div>
+                <EventSignupButton eventId={ev.id} alreadyJoined={mySignupSet.has(ev.id)} />
+              </div>
+            ))
+          ) : (
+            <p style={{ fontSize: 14, color: '#80868B' }}>No upcoming events.</p>
+          )}
+        </div>
+      </section>
 
-        {/* Upcoming Events */}
-        <section className="card">
-          <h2 style={{ fontSize: 16, fontWeight: 500, color: '#202124', marginBottom: 16 }}>Upcoming Events</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {upcomingEvents && upcomingEvents.length > 0 ? (
-              upcomingEvents.map((ev) => (
-                <div key={ev.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid #E8EAED' }}>
+      {/* My Past Match Results */}
+      <section className="card">
+        <h2 style={{ fontSize: 16, fontWeight: 500, color: '#202124', marginBottom: 16 }}>My Match Results</h2>
+        {matchResults && matchResults.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {matchResults.map((m: any) => {
+              const isPlayer1 = m.player1_id === user.id;
+              const opponentName = isPlayer1 ? (m.p2?.name ?? 'Unknown') : (m.p1?.name ?? 'Unknown');
+              const result = m.winner_id === null ? 'Draw' : m.winner_id === user.id ? 'Won' : 'Lost';
+              const resultColor = result === 'Won' ? '#137333' : result === 'Lost' ? '#C5221F' : '#B45309';
+              const resultBg = result === 'Won' ? '#E6F4EA' : result === 'Lost' ? '#FCE8E6' : '#FEF3C7';
+              return (
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid #E8EAED', borderRadius: 8, gap: 12, flexWrap: 'wrap' }}>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 500, color: '#202124', marginBottom: 2 }}>{ev.title}</p>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: '#202124' }}>vs {opponentName}</p>
                     <p style={{ fontSize: 12, color: '#5F6368' }}>
-                      {new Date(ev.event_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      {m.events?.title ? `${m.events.title} · ` : ''}
+                      {new Date(m.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
-                  <Link href="/events" style={{ fontSize: 12, fontWeight: 500, color: '#1A73E8', background: '#E8F0FE', padding: '5px 12px', borderRadius: 100, textDecoration: 'none' }}>
-                    Join
-                  </Link>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: resultColor, background: resultBg, padding: '4px 12px', borderRadius: 100 }}>
+                    {result}
+                  </span>
                 </div>
-              ))
-            ) : (
-              <p style={{ fontSize: 14, color: '#80868B' }}>No upcoming events.</p>
-            )}
+              );
+            })}
           </div>
-          <Link href="/events" style={{ fontSize: 13, color: '#1A73E8', textDecoration: 'none', fontWeight: 500, display: 'inline-block', marginTop: 16 }}>
-            View all events →
-          </Link>
-        </section>
-
-        {/* My Signups */}
-        <section className="card">
-          <h2 style={{ fontSize: 16, fontWeight: 500, color: '#202124', marginBottom: 16 }}>My Registered Events</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {mySignups && mySignups.length > 0 ? (
-              mySignups.map((s: any) => (
-                <div key={s.event_id} style={{ paddingBottom: 14, borderBottom: '1px solid #E8EAED' }}>
-                  <p style={{ fontSize: 14, fontWeight: 500, color: '#202124', marginBottom: 2 }}>{s.events?.title ?? 'Event'}</p>
-                  <p style={{ fontSize: 12, color: '#5F6368' }}>
-                    {s.events?.event_date ? new Date(s.events.event_date).toLocaleDateString('en-GB') : ''}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p style={{ fontSize: 14, color: '#80868B' }}>You haven&apos;t joined any events yet.</p>
-            )}
-          </div>
-        </section>
-      </div>
+        ) : (
+          <p style={{ fontSize: 14, color: '#80868B' }}>No match results yet.</p>
+        )}
+      </section>
 
       {/* Leaderboard preview */}
       <section className="card">
@@ -126,9 +143,6 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
-        <Link href="/leaderboard" style={{ fontSize: 13, color: '#1A73E8', textDecoration: 'none', fontWeight: 500, display: 'inline-block', marginTop: 16 }}>
-          Full leaderboard →
-        </Link>
       </section>
 
       {/* Messages */}

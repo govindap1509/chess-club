@@ -23,31 +23,56 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* HERO */}
-      <section style={{ padding: '80px 0', background: '#FFFFFF' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#1A73E8', marginBottom: 16, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+      {/* HERO with chess image */}
+      <section style={{ position: 'relative', overflow: 'hidden', background: '#0D1117' }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url(https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1400&q=80)',
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          opacity: 0.35,
+        }} />
+        <div style={{ position: 'relative', maxWidth: 1200, margin: '0 auto', padding: '100px 24px 80px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#8AB4F8', marginBottom: 16, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Welcome to
           </p>
-          <h1 style={{ fontSize: 'clamp(32px,5vw,48px)', fontWeight: 600, color: '#202124', lineHeight: 1.15, letterSpacing: '-0.02em', marginBottom: 20 }}>
+          <h1 style={{ fontSize: 'clamp(36px,6vw,56px)', fontWeight: 700, color: '#FFFFFF', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 20 }}>
             School Chess Club
           </h1>
-          <p style={{ fontSize: 18, fontWeight: 400, color: '#5F6368', lineHeight: 1.6, maxWidth: 540, margin: '0 auto 32px' }}>
+          <p style={{ fontSize: 18, fontWeight: 400, color: '#C9D1D9', lineHeight: 1.7, maxWidth: 560, margin: '0 auto 36px' }}>
             Join weekly chess events, track your rating, compete with fellow students,
             and climb the leaderboard.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <Link href="/login" className="btn-primary">Get Started</Link>
-            <Link href="/leaderboard" className="btn-secondary">View Leaderboard</Link>
-          </div>
+          <Link
+            href="/login"
+            style={{
+              display: 'inline-block',
+              background: '#1A73E8',
+              color: '#FFFFFF',
+              fontSize: 16,
+              fontWeight: 600,
+              padding: '14px 36px',
+              borderRadius: 8,
+              textDecoration: 'none',
+              transition: 'background 200ms',
+            }}
+          >
+            Login to Dashboard
+          </Link>
         </div>
+      </section>
+
+      {/* Chess image strip */}
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', height: 200, overflow: 'hidden' }}>
+        <div style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586165368502-1bad9cc70139?w=600&q=80)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1560174038-da43ac74f01b?w=600&q=80)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1528819622765-d6bcf132f793?w=600&q=80)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
       </section>
 
       {/* UPCOMING EVENTS */}
       <section style={{ padding: '64px 0', background: '#F8F9FA' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
           <h2 style={{ fontSize: 32, fontWeight: 400, color: '#202124', marginBottom: 8 }}>Upcoming Events</h2>
-          <p style={{ fontSize: 14, color: '#5F6368', marginBottom: 40 }}>Sign in to join and secure your spot.</p>
+          <p style={{ fontSize: 14, color: '#5F6368', marginBottom: 40 }}>Sign in to register and secure your spot.</p>
           {events && events.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 20 }}>
               {events.map((event) => (
@@ -100,9 +125,6 @@ export default async function HomePage() {
               </tbody>
             </table>
           </div>
-          <div style={{ marginTop: 16, textAlign: 'right' }}>
-            <Link href="/leaderboard" style={{ fontSize: 14, color: '#1A73E8', textDecoration: 'none', fontWeight: 500 }}>View full leaderboard →</Link>
-          </div>
         </div>
       </section>
 
@@ -114,11 +136,7 @@ export default async function HomePage() {
               <p style={{ fontSize: 15, fontWeight: 600, color: '#E8EAED', marginBottom: 4 }}>♟ School Chess Club</p>
               <p style={{ fontSize: 13, color: '#9AA0A6' }}>Building champions, one move at a time.</p>
             </div>
-            <div style={{ display: 'flex', gap: 24 }}>
-              <Link href="/events" style={{ fontSize: 13, color: '#9AA0A6', textDecoration: 'none' }}>Events</Link>
-              <Link href="/leaderboard" style={{ fontSize: 13, color: '#9AA0A6', textDecoration: 'none' }}>Leaderboard</Link>
-              <Link href="/login" style={{ fontSize: 13, color: '#8AB4F8', textDecoration: 'none' }}>Login</Link>
-            </div>
+            <Link href="/login" style={{ fontSize: 13, color: '#8AB4F8', textDecoration: 'none' }}>Login</Link>
           </div>
           <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #3C4043' }}>
             <p style={{ fontSize: 12, color: '#5F6368' }}>&copy; {new Date().getFullYear()} School Chess Club. All rights reserved.</p>
