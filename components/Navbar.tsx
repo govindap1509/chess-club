@@ -6,7 +6,11 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Menu, X } from 'lucide-react';
 
-const navLinks = [
+const publicNavLinks = [
+  { href: '/', label: 'Home' },
+];
+
+const authNavLinks = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
@@ -73,7 +77,7 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center" style={{ gap: 32 }}>
-          {navLinks.map((l) => (
+          {(userEmail ? authNavLinks : publicNavLinks).map((l) => (
             <Link
               key={l.href}
               href={l.href}
@@ -146,7 +150,7 @@ export default function Navbar() {
             gap: 4,
           }}
         >
-          {navLinks.map((l) => (
+          {(userEmail ? authNavLinks : publicNavLinks).map((l) => (
             <Link
               key={l.href}
               href={l.href}
