@@ -74,7 +74,9 @@ export default function ProfilePage() {
       toast.success('Profile saved!');
       window.location.href = '/dashboard';
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Save failed');
+      const msg = err instanceof Error ? err.message : (typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : JSON.stringify(err));
+      console.error('Profile save error:', err);
+      toast.error(msg || 'Save failed');
     } finally {
       setSaving(false);
     }
